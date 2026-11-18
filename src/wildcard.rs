@@ -40,10 +40,32 @@ pub async fn baseline(domain: &str) -> Vec<String> {
         }
     };
 
+    // A probe that timed out or failed tells us nothing, so the baseline may be
+    // incomplete (or empty while the domain really has a wildcard). Say so instead of
+    // silently treating every result as genuine.
+    if let Some(message) = probe_warning(report.timeouts, report.errors) {
+        eprintln!("{message}");
+    }
+
     let mut values: Vec<String> = report.findings.into_iter().map(|f| f.value).collect();
     values.sort();
     values.dedup();
     values
+}
+
+/// Warning shown when some wildcard probes timed out or failed, or `None` when all
+/// probes got a clear answer. It also explains the `[timeout]` / `[error]` lines that
+/// the brute force engine printed for the random probe names.
+fn probe_warning(timeouts: usize, errors: usize) -> Option<String> {
+    let failed = timeouts + errors;
+    if failed == 0 {
+        return None;
+    }
+    Some(format!(
+        "[warning] wildcard check incomplete: {failed} of {PROBES} random probe names \
+         timed out or failed (the random-looking hostnames above are these probes). \
+         Results may include wildcard noise."
+    ))
 }
 
 /// Compare a finding with the baseline and classify it.
@@ -170,6 +192,18 @@ mod tests {
         assert_eq!(a.len(), LABEL_LEN);
         assert!(a.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()));
         assert_ne!(a, b);
+    }
+
+    #[test]
+    fn no_warning_when_all_probes_answered() {
+        assert_eq!(probe_warning(0, 0), None);
+    }
+
+    #[test]
+    fn warning_counts_timeouts_and_errors() {
+        let message = probe_warning(2, 1).expect("warning expected");
+        assert!(message.starts_with("[warning] wildcard check incomplete"));
+        assert!(message.contains("3 of 3 random probe names"));
     }
 
     /// example.com has no wildcard, so the baseline should be empty.
