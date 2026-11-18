@@ -1,0 +1,16 @@
+# SubHunter demo wordlist (small, for testing on example.com or a domain you own)
+www
+mail
+ftp
+admin
+dev
+staging
+test
+vpn
+api
+portal
+blog
+shop
+m
+ns1
+ns2
