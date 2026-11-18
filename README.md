@@ -96,11 +96,34 @@ flowchart TD
 
 ### Rules of Engagement (RoE)
 
-1. Test only domains you own, or those covered by a written authorisation that names the domain.
-2. Keep the request rate low. Do not degrade the target's or the resolver's service.
-3. Use `example.com` or a domain you own for demonstrations.
-4. Do not publish findings about third-party systems.
-5. Stop immediately if the owner asks you to.
+Anyone running SubHunter agrees to these rules before the first query is sent.
+
+#### Authorised scope
+- Test only domains you own, or domains named in a **written authorisation** from their owner.
+- The authorisation must list the exact domain(s). Subdomains of an authorised domain are in scope; other domains they point to (for example a CNAME to a cloud provider) are **not**.
+- For demonstrations and class work use `example.com` or a domain the team owns.
+
+#### Time windows
+- Run scans only inside the time window agreed in the written authorisation.
+- If no window is agreed, scan outside the owner's business hours and tell the owner before you start.
+- Class demonstrations are run only during the lab session or the scheduled online defence.
+
+#### Permitted techniques
+- DNS queries for A, AAAA and CNAME records, sent through the system's normal DNS resolver.
+- Querying hostnames built from a wordlist, plus a few random names for wildcard detection.
+- The built-in safe defaults: at most 10 lookups at a time, one new hostname every 50 ms, 3 s timeout.
+
+#### Prohibited actions
+- Scanning any domain without written authorisation.
+- Raising the rate limit or concurrency against infrastructure you do not own.
+- Port scanning, vulnerability scanning, exploitation or login attempts against discovered hosts. SubHunter is reconnaissance only.
+- DNS zone transfer (AXFR) attempts or attacks on the DNS servers themselves.
+- Sharing, publishing or selling results about systems you do not own.
+
+#### Emergency stop
+- Press `Ctrl+C` at any time. No new queries are sent, lookups already in flight finish, and the results found so far are kept locally *(the Ctrl+C handler is planned; the scan engine already honours the stop signal)*.
+- Stop immediately if the owner asks you to, if you see errors or slow responses that suggest you are affecting their service, or if you discover you are outside the authorised scope.
+- After an emergency stop, tell the owner what was run and when, and do not resume without their agreement.
 
 ---
 
