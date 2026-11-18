@@ -109,8 +109,8 @@ flowchart TD
 Requirements: [Rust](https://rustup.rs) (stable) and Git.
 
 ```bash
-git clone <repository-url>
-cd subhunter
+git clone https://github.com/Dannyz15/SubHunter.git
+cd SubHunter
 cargo build --release
 ```
 
