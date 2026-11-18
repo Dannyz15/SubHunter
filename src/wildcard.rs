@@ -22,13 +22,15 @@ const LABEL_LEN: usize = 16;
 
 /// Look up random hostnames under `domain` to learn what a wildcard answer looks like.
 /// Returns the IPs/CNAME values the wildcard resolves to (empty = no wildcard).
-pub async fn baseline(domain: &str) -> Vec<String> {
+///
+/// `stop` is the same kill switch the brute force uses: once Ctrl+C sets it, no new
+/// probe starts and whatever was learned so far is returned.
+pub async fn baseline(domain: &str, stop: Arc<AtomicBool>) -> Vec<String> {
     let domain = domain.trim().trim_end_matches('.').to_lowercase();
     let candidates: Vec<String> = (0..PROBES)
         .map(|_| format!("{}.{domain}", random_label()))
         .collect();
 
-    let stop = Arc::new(AtomicBool::new(false));
     let report = match dns_bruteforce::run(candidates, &BruteForceConfig::default(), stop).await
     {
         Ok(report) => report,
@@ -43,8 +45,11 @@ pub async fn baseline(domain: &str) -> Vec<String> {
     // A probe that timed out or failed tells us nothing, so the baseline may be
     // incomplete (or empty while the domain really has a wildcard). Say so instead of
     // silently treating every result as genuine.
-    if let Some(message) = probe_warning(report.timeouts, report.errors) {
-        eprintln!("{message}");
+    // When the user pressed Ctrl+C the scan is ending anyway, so no warning is needed.
+    if !report.stopped {
+        if let Some(message) = probe_warning(report.timeouts, report.errors) {
+            eprintln!("{message}");
+        }
     }
 
     let mut values: Vec<String> = report.findings.into_iter().map(|f| f.value).collect();
@@ -206,11 +211,20 @@ mod tests {
         assert!(message.contains("3 of 3 random probe names"));
     }
 
+    /// Kill switch already set: no probe is sent, so the baseline is empty.
+    /// No network needed, because no lookup starts.
+    #[tokio::test]
+    async fn stop_flag_prevents_any_probe() {
+        let stop = Arc::new(AtomicBool::new(true));
+        assert!(baseline("example.com", stop).await.is_empty());
+    }
+
     /// example.com has no wildcard, so the baseline should be empty.
     /// Needs internet access. Run with `cargo test baseline_ -- --ignored`.
     #[tokio::test]
     #[ignore]
     async fn baseline_empty_for_domain_without_wildcard() {
-        assert!(baseline("example.com").await.is_empty());
+        let stop = Arc::new(AtomicBool::new(false));
+        assert!(baseline("example.com", stop).await.is_empty());
     }
 }
