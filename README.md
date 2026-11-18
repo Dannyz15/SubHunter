@@ -76,7 +76,7 @@ flowchart TD
 - DNS brute force with a user-supplied wordlist *(planned)*
 - A, AAAA and CNAME record detection *(planned)*
 - Handling of invalid domains, DNS errors and timeouts *(planned)*
-- Wildcard DNS detection and classification *(planned)*
+- Wildcard DNS detection and classification
 - Hostname risk indicators with reasons *(planned)*
 - CSV export: hostname, DNS record, value, wildcard status, risk indicator *(planned)*
 - Concurrent lookups with rate limiting *(planned)*
@@ -153,6 +153,10 @@ dev.example.com,A,192.0.2.10,likely_genuine,medium,Development host may expose u
 - Brute force only finds names that are in the wordlist.
 - Results depend on the DNS resolver in use and on network conditions.
 - Wildcard detection is a heuristic. Some results are classified as *uncertain*.
+  - A real host that shares an IP address with the wildcard answer (for example the same web server) is classified as *likely wildcard*.
+  - On CDNs and large hosting providers, many results are *uncertain*, because any IP in the same /24 (IPv4) or /64 (IPv6) as the wildcard answer is treated as uncertain.
+  - A wildcard that returns very different IPs on each query can be missed, because only 3 random names are probed.
+  - If the random probes time out, the tool prints a warning and the wildcard status of the results cannot be trusted.
 - Risk indicators are based on hostname patterns only. They are hints, not confirmed vulnerabilities.
 
 ---
