@@ -77,8 +77,8 @@ flowchart TD
 - A, AAAA and CNAME record detection *(planned)*
 - Handling of invalid domains, DNS errors and timeouts *(planned)*
 - Wildcard DNS detection and classification
-- Hostname risk indicators with reasons *(planned)*
-- CSV export: hostname, DNS record, value, wildcard status, risk indicator *(planned)*
+- Hostname risk indicators (high, medium, low, none) with a plain-language reason
+- CSV export: hostname, DNS record, value, wildcard status, risk level and reason, with protection against CSV formula injection
 - Concurrent lookups with rate limiting *(planned)*
 
 ---
@@ -161,12 +161,12 @@ Example:
 cargo run --release -- --domain example.com --wordlist wordlists/small.txt
 ```
 
-Example CSV output *(illustrative, final columns may change)*:
+Example CSV output (columns are final; the `dev` row is illustrative, example.com only has `www`):
 
 ```csv
 hostname,record_type,value,wildcard_status,risk_level,risk_reason
 www.example.com,A,93.184.216.34,likely_genuine,none,
-dev.example.com,A,192.0.2.10,likely_genuine,medium,Development host may expose unfinished code
+dev.example.com,A,192.0.2.10,likely_genuine,medium,Development or staging host may expose unfinished code or debug features
 ```
 
 ---
