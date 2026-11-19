@@ -90,11 +90,15 @@ fn wildcard_name(status: Option<WildcardStatus>) -> &'static str {
     }
 }
 
-/// Protect against CSV (formula) injection: a value from DNS that starts with
-/// = + - or @ could run as a formula when the report is opened in Excel, so a
-/// leading quote is added to force it to be shown as plain text.
+/// Characters that can make a spreadsheet treat a cell as a formula (OWASP CSV
+/// injection list): = + - @, plus tab and carriage return.
+const FORMULA_START: [char; 6] = ['=', '+', '-', '@', '\t', '\r'];
+
+/// Protect against CSV (formula) injection: a value from DNS that starts with one
+/// of `FORMULA_START` could run as a formula when the report is opened in Excel,
+/// so a leading quote is added to force it to be shown as plain text.
 fn safe_cell(value: &str) -> String {
-    if value.starts_with(['=', '+', '-', '@']) {
+    if value.starts_with(FORMULA_START) {
         format!("'{value}")
     } else {
         value.to_string()
@@ -179,6 +183,14 @@ mod tests {
         assert_eq!(safe_cell("=1+1"), "'=1+1");
         assert_eq!(safe_cell("@cmd"), "'@cmd");
         assert_eq!(safe_cell("192.0.2.1"), "192.0.2.1");
+    }
+
+    #[test]
+    fn tab_and_carriage_return_are_neutralised() {
+        assert_eq!(safe_cell("\t=1+1"), "'\t=1+1");
+        assert_eq!(safe_cell("\r=1+1"), "'\r=1+1");
+        // Only a leading tab or CR matters; one in the middle is left alone.
+        assert_eq!(safe_cell("a\tb"), "a\tb");
     }
 
     #[test]
