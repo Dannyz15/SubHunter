@@ -112,15 +112,19 @@ async fn main() -> ExitCode {
     if !report.findings.is_empty() {
         println!("\n[*] Found subdomains:");
         println!(
-            "{:<30} {:<6} {:<20} {:<15} {:<8}",
+            "{:<30} {:<6} {:<40} {:<16} {:<8}",
             "HOSTNAME", "TYPE", "VALUE", "WILDCARD", "RISK"
         );
+        // Same spellings as the CSV (AAAA, likely_genuine), so terminal and report match.
         for f in &report.findings {
-            let wc = format!("{:?}", f.wildcard.as_ref().unwrap());
             let rk = f.risk.as_ref().map(|r| r.level.as_str()).unwrap_or("none");
             println!(
-                "{:<30} {:<6?} {:<20} {:<15} {:<8}",
-                f.hostname, f.record_type, f.value, wc, rk
+                "{:<30} {:<6} {:<40} {:<16} {:<8}",
+                f.hostname,
+                reporter::record_type_name(f.record_type),
+                f.value,
+                reporter::wildcard_name(f.wildcard),
+                rk
             );
         }
     }
