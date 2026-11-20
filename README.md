@@ -209,6 +209,16 @@ cargo test -- --ignored --nocapture    # 4 live tests against example.com (needs
 
 The live tests resolve real and non-existent names, check that example.com has no wildcard, and run the whole pipeline into `output/report.csv`.
 
+### Kill switch test
+
+`wordlists/ctrlc-test.txt` holds 601 names (`www` plus `test1` to `test600`), so a scan takes about 30 seconds:
+
+```bash
+cargo run -- -d example.com -w wordlists/ctrlc-test.txt -o output/ctrlc.csv
+```
+
+Confirm the domain, then press `Ctrl+C` a few seconds into the scan. Expected result: `Ctrl+C received`, a summary ending in `(stopped early)` with fewer than 601 names queried, and `output/ctrlc.csv` still written with the `www` rows found before the stop. Tested on 20 Nov 2026: stopped after 84 of 601 names.
+
 ---
 
 ## Limitations
