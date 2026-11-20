@@ -45,10 +45,10 @@ pub async fn baseline(domain: &str, stop: Arc<AtomicBool>) -> Vec<String> {
     // incomplete (or empty while the domain really has a wildcard). Say so instead of
     // silently treating every result as genuine.
     // When the user pressed Ctrl+C the scan is ending anyway, so no warning is needed.
-    if !report.stopped {
-        if let Some(message) = probe_warning(report.timeouts, report.errors) {
-            eprintln!("{message}");
-        }
+    if !report.stopped
+        && let Some(message) = probe_warning(report.timeouts, report.errors)
+    {
+        eprintln!("{message}");
     }
 
     let mut values: Vec<String> = report.findings.into_iter().map(|f| f.value).collect();
