@@ -202,8 +202,8 @@ fn record_outcome(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use hickory_resolver::proto::rr::rdata::{A, AAAA, CNAME};
     use hickory_resolver::proto::rr::Name;
+    use hickory_resolver::proto::rr::rdata::{A, AAAA, CNAME};
     use std::str::FromStr;
 
     #[test]
@@ -212,7 +212,10 @@ mod tests {
         assert_eq!(convert(&a), Some((RecordType::A, "192.0.2.1".into())));
 
         let aaaa = RData::AAAA(AAAA::new(0x2001, 0xdb8, 0, 0, 0, 0, 0, 1));
-        assert_eq!(convert(&aaaa), Some((RecordType::Aaaa, "2001:db8::1".into())));
+        assert_eq!(
+            convert(&aaaa),
+            Some((RecordType::Aaaa, "2001:db8::1".into()))
+        );
 
         let cname = RData::CNAME(CNAME(Name::from_str("target.example.com.").unwrap()));
         assert_eq!(
@@ -247,7 +250,12 @@ mod tests {
             .unwrap();
         assert_eq!(report.queried, 2);
         assert_eq!(report.resolved, 1);
-        assert!(report.findings.iter().all(|f| f.hostname == "www.example.com"));
+        assert!(
+            report
+                .findings
+                .iter()
+                .all(|f| f.hostname == "www.example.com")
+        );
     }
 
     /// Demo run of the full wordlist module + brute force on example.com.

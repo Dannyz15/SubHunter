@@ -18,7 +18,10 @@ pub fn load(path: &Path) -> Result<Vec<String>, String> {
 
     let words = clean(&content);
     if words.is_empty() {
-        return Err(format!("wordlist '{}' has no usable entries", path.display()));
+        return Err(format!(
+            "wordlist '{}' has no usable entries",
+            path.display()
+        ));
     }
     Ok(words)
 }
@@ -90,7 +93,10 @@ mod tests {
             .iter()
             .map(|s| s.to_string())
             .collect();
-        assert_eq!(build_candidates(&words, "example.com"), vec!["ok.example.com"]);
+        assert_eq!(
+            build_candidates(&words, "example.com"),
+            vec!["ok.example.com"]
+        );
     }
 
     #[test]

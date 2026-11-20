@@ -31,8 +31,7 @@ pub async fn baseline(domain: &str, stop: Arc<AtomicBool>) -> Vec<String> {
         .map(|_| format!("{}.{domain}", random_label()))
         .collect();
 
-    let report = match dns_bruteforce::run(candidates, &BruteForceConfig::default(), stop).await
-    {
+    let report = match dns_bruteforce::run(candidates, &BruteForceConfig::default(), stop).await {
         Ok(report) => report,
         Err(e) => {
             // Without a baseline we cannot detect a wildcard. Results will then be
@@ -195,7 +194,10 @@ mod tests {
         let a = random_label();
         let b = random_label();
         assert_eq!(a.len(), LABEL_LEN);
-        assert!(a.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()));
+        assert!(
+            a.chars()
+                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+        );
         assert_ne!(a, b);
     }
 
