@@ -12,7 +12,7 @@ SubHunter discovers subdomains of a target domain by DNS brute force, filters ou
 | Category | Offensive OSINT |
 | Language | Rust |
 
-> **Status:** all modules are implemented and tested (45 unit tests). Version 1.0.0 is in preparation.
+> **Status:** version 1.0.0. All modules are implemented and tested (45 unit tests, 4 live tests).
 
 ---
 
