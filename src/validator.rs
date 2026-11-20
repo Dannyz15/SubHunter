@@ -1,7 +1,7 @@
 //! Target domain and scope validation. Owner: Amirah.
 //!
 //! Checks that the `--domain` argument is a well-formed DNS domain name before
-//! any network activity happens.This is a syntax check only: the tool does not
+//! any network activity happens. This is a syntax check only: the tool does not
 //! try to decide which domains are "allowed" (that is the user's responsibility
 //! under the Rules of Engagement). Authorisation itself is confirmed by the
 //! ethics gate in `ethics.rs`.
@@ -26,7 +26,9 @@ pub fn validate_domain(domain: &str) -> Result<(), String> {
         ));
     }
     if domain.contains("://") {
-        return Err("domain must be a hostname like example.com, not a URL (drop https://)".to_string());
+        return Err(
+            "domain must be a hostname like example.com, not a URL (drop https://)".to_string(),
+        );
     }
     if domain.contains('/') || domain.contains(' ') {
         return Err("domain must not contain spaces or slashes".to_string());

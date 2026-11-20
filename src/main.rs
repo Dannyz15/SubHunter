@@ -1,5 +1,5 @@
 //! SubHunter entry point. Owner: Amirah.
-//! Flow: CLI -> validate -> ethics confirm -> wordlist -> wildcard -> brute force -> risk -> CSV.
+//! Flow: CLI -> validate -> wordlist -> ethics confirm -> wildcard -> brute force -> risk -> CSV.
 
 mod cli;
 mod dns_bruteforce;
@@ -26,12 +26,7 @@ async fn main() -> ExitCode {
         return ExitCode::FAILURE;
     }
 
-    // 2. Legal disclaimer and authorisation
-    if !ethics::confirm_authorisation(&args.domain) {
-        return ExitCode::FAILURE;
-    }
-
-    // 3. Load the wordlist and build candidates
+    // 2. Load the wordlist and build candidates (moved up so bad paths fail before the disclaimer)
     let words = match wordlist::load(&args.wordlist) {
         Ok(w) => w,
         Err(e) => {
@@ -42,6 +37,11 @@ async fn main() -> ExitCode {
     let candidates = wordlist::build_candidates(&words, &args.domain);
     if candidates.is_empty() {
         eprintln!("[error] no valid candidate hostnames could be built from the wordlist");
+        return ExitCode::FAILURE;
+    }
+
+    // 3. Legal disclaimer and authorisation
+    if !ethics::confirm_authorisation(&args.domain) {
         return ExitCode::FAILURE;
     }
 
@@ -65,7 +65,7 @@ async fn main() -> ExitCode {
     println!("[*] Checking for wildcard DNS...");
     let baseline = wildcard::baseline(&args.domain, Arc::clone(&stop)).await;
 
-    // 6. Check stop flag right after baseline
+    // 6. Check stop flag right after baseline (Danial's PR #2 review note)
     if stop.load(Ordering::SeqCst) {
         println!("[!] Scan stopped before starting the main brute force.");
         return ExitCode::SUCCESS;
@@ -87,7 +87,11 @@ async fn main() -> ExitCode {
         report.resolved,
         report.timeouts,
         report.errors,
-        if report.stopped { " (stopped early)" } else { "" }
+        if report.stopped {
+            " (stopped early)"
+        } else {
+            ""
+        }
     );
 
     // 8. Classify and assess
@@ -103,6 +107,27 @@ async fn main() -> ExitCode {
         return ExitCode::FAILURE;
     }
     println!("[+] Report saved to: {}", args.output.display());
+
+    // 10. Print a summary table to the terminal (Danial's PR #5 review note)
+    if !report.findings.is_empty() {
+        println!("\n[*] Found subdomains:");
+        println!(
+            "{:<30} {:<6} {:<40} {:<16} {:<8}",
+            "HOSTNAME", "TYPE", "VALUE", "WILDCARD", "RISK"
+        );
+        // Same spellings as the CSV (AAAA, likely_genuine), so terminal and report match.
+        for f in &report.findings {
+            let rk = f.risk.as_ref().map(|r| r.level.as_str()).unwrap_or("none");
+            println!(
+                "{:<30} {:<6} {:<40} {:<16} {:<8}",
+                f.hostname,
+                reporter::record_type_name(f.record_type),
+                f.value,
+                reporter::wildcard_name(f.wildcard),
+                rk
+            );
+        }
+    }
 
     ExitCode::SUCCESS
 }

@@ -73,7 +73,7 @@ fn to_row(finding: &Finding) -> Row<'_> {
 }
 
 /// DNS spelling of the record type ("AAAA", not Rust's "Aaaa").
-fn record_type_name(kind: RecordType) -> &'static str {
+pub(crate) fn record_type_name(kind: RecordType) -> &'static str {
     match kind {
         RecordType::A => "A",
         RecordType::Aaaa => "AAAA",
@@ -81,7 +81,7 @@ fn record_type_name(kind: RecordType) -> &'static str {
     }
 }
 
-fn wildcard_name(status: Option<WildcardStatus>) -> &'static str {
+pub(crate) fn wildcard_name(status: Option<WildcardStatus>) -> &'static str {
     match status {
         Some(WildcardStatus::LikelyGenuine) => "likely_genuine",
         Some(WildcardStatus::LikelyWildcard) => "likely_wildcard",
